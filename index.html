@@ -1,0 +1,1053 @@
+```html
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>昼夜奇遇 - 专属惊喜游乐园</title>
+    <style>
+        :root {
+            --bg-night-1: #112d4e; --bg-night-2: #3f72af; --bg-night-3: #dbe2ef;
+            --bg-day-1: #87CEEB; --bg-day-2: #B0E0E6; --bg-day-3: #F0F8FF;
+        }
+
+        body { margin: 0; overflow: hidden; font-family: 'Courier New', Courier, monospace; user-select: none; height: 100vh; position: relative; }
+
+        /* --- 开场引导层 --- */
+        #start-overlay {
+            position: fixed; inset: 0; background: rgba(17, 45, 78, 0.9); display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; z-index: 99999; cursor: pointer; transition: opacity 1s ease;
+        }
+        #start-overlay h1 { font-size: 28px; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255,255,255,0.8); animation: pulse 2s infinite alternate; }
+        #start-overlay p { font-size: 16px; color: #dbe2ef; margin-top: 10px; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1.05); opacity: 1; } }
+
+        /* --- 昼夜交替背景层 --- */
+        .sky-gradient { position: absolute; inset: 0; z-index: 0; transition: opacity 2s ease; background: linear-gradient(180deg, var(--bg-night-1) 0%, var(--bg-night-2) 50%, var(--bg-night-3) 100%); }
+        .sky-day { position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity 2s ease; background: linear-gradient(180deg, var(--bg-day-1) 0%, var(--bg-day-2) 50%, var(--bg-day-3) 100%); }
+        body.day .sky-day { opacity: 1; } body.day .star { opacity: 0; }
+        body.day .ground { background: #abebc6; border-top: 4px solid #58d68d; }
+
+        /* --- 专属元素切换逻辑 --- */
+        .night-element { transition: opacity 1.5s ease; opacity: 1; pointer-events: auto; }
+        body.day .night-element { opacity: 0; pointer-events: none; }
+        .day-element { transition: opacity 1.5s ease; opacity: 0; pointer-events: none; }
+        body.day .day-element { opacity: 1; pointer-events: auto; }
+
+        /* --- 场景元素 --- */
+        .ground { position: absolute; bottom: 0; width: 100%; height: 25%; background: #a9cce3; border-top: 4px solid #7fb3d5; box-shadow: 0 -10px 30px rgba(255,255,255,0.2); z-index: 10; transition: all 2s ease; cursor: pointer;}
+        .star { position: absolute; background-color: white; border-radius: 50%; box-shadow: 0 0 5px 1px rgba(255, 255, 255, 0.8); animation: twinkle 2s alternate infinite; z-index: 2; transition: opacity 2s ease; }
+        @keyframes twinkle { 0% { opacity: 0.2; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+        .moon-sun { position: absolute; top: 10%; right: 15%; width: 80px; height: 80px; border-radius: 50%; box-shadow: inset -15px -5px 0 0 #fffacd; filter: drop-shadow(0 0 15px rgba(255, 250, 205, 0.8)); cursor: pointer; transition: all 1s ease; z-index: 3; }
+        .moon-sun.sun { box-shadow: none; background: #f1c40f; filter: drop-shadow(0 0 30px #f39c12); transform: scale(1.2); }
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50px; cursor: pointer; z-index: 5; animation: floatCloud infinite linear; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: rgba(255, 255, 255, 0.8); border-radius: 50%; }
+        .cloud1 { width: 120px; height: 40px; top: 20%; left: -150px; animation-duration: 30s; animation-delay: -15s; } .cloud1::before { width: 60px; height: 60px; top: -30px; left: 15px; } .cloud1::after { width: 40px; height: 40px; top: -20px; right: 15px; }
+        .cloud2 { width: 160px; height: 50px; top: 35%; left: -200px; animation-duration: 40s; animation-delay: -5s; } .cloud2::before { width: 70px; height: 70px; top: -40px; left: 25px; } .cloud2::after { width: 50px; height: 50px; top: -25px; right: 25px; }
+        .cloud3 { width: 100px; height: 35px; top: 12%; left: -100px; animation-duration: 25s; animation-delay: -20s; } .cloud3::before { width: 50px; height: 50px; top: -25px; left: 15px; } .cloud3::after { width: 35px; height: 35px; top: -15px; right: 15px; }
+        @keyframes floatCloud { 0% { transform: translateX(-200px); } 100% { transform: translateX(120vw); } }
+
+        /* --- 远处的温馨小房子 --- */
+        .house { position: absolute; bottom: 25%; z-index: 8; pointer-events: none; }
+        .house1 { left: 8%; transform: scale(1.1); } .house2 { right: 18%; transform: scale(0.9); } .house3 { left: 40%; transform: scale(0.7); bottom: 26%; opacity: 0.8; z-index: 7;}
+        .roof { width: 0; height: 0; border-left: 45px solid transparent; border-right: 45px solid transparent; border-bottom: 40px solid #2c3e50; position: relative; }
+        .roof::after { content: ''; position: absolute; width: 12px; height: 25px; background: #5d6d7e; top: 10px; right: -30px; z-index: -1; }
+        .wall { width: 70px; height: 55px; background: #e5e7e9; margin: 0 auto; position: relative; border-radius: 2px; }
+        .window { width: 18px; height: 18px; background: #f4d03f; position: absolute; top: 12px; left: 10px; border: 2px solid #bdc3c7; box-shadow: 0 0 10px #f1c40f; animation: windowGlow 3s infinite alternate; transition: all 2s ease; }
+        .window::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: #bdc3c7; transform: translateY(-50%); }
+        .window::after { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: #bdc3c7; transform: translateX(-50%); }
+        .door { width: 18px; height: 30px; background: #8e44ad; position: absolute; bottom: 0; right: 12px; border-radius: 3px 3px 0 0; }
+        @keyframes windowGlow { 0% { box-shadow: 0 0 5px #f1c40f; opacity: 0.9; } 100% { box-shadow: 0 0 15px #f39c12; opacity: 1; } }
+
+        /* ================= 超可爱手账本洛杉矶日历面板 (带翻转游戏) ================= */
+        #la-calendar { 
+            position: absolute; top: 30px; left: 20px; width: 240px; height: 290px;
+            perspective: 1000px; z-index: 50; 
+            font-family: 'Comic Sans MS', 'Balsamiq Sans', cursive, sans-serif;
+        }
+        
+        #la-calendar-card {
+            width: 100%; height: 100%; position: relative;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        #la-calendar-card.is-flipped { transform: rotateY(180deg); }
+        
+        .cal-card__face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 20px;
+            box-sizing: border-box; padding: 15px 15px 10px 15px;
+        }
+
+        /* 正面日历样式 */
+        .cal-card__face--front {
+            background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(8px); 
+            border: 4px dashed #ffb6c1; box-shadow: 0 8px 25px rgba(255, 182, 193, 0.4); 
+            display: flex; flex-direction: column; transition: all 1s ease;
+        }
+        body:not(.day) .cal-card__face--front { background: rgba(26, 38, 57, 0.85); border-color: #8fa2ce; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+
+        #la-calendar::before {
+            content: ''; position: absolute; top: -12px; left: 50%; 
+            transform: translateX(-50%) rotate(-3deg); 
+            width: 80px; height: 26px; background: rgba(135, 206, 235, 0.85); 
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.15); border-radius: 2px; z-index: 51; pointer-events: none;
+            transition: background 1s ease;
+        }
+        body:not(.day) #la-calendar::before { background: rgba(255, 255, 255, 0.4); }
+
+        /* 背面游戏样式 */
+        .cal-card__face--back {
+            background: rgba(40, 40, 40, 0.95); backdrop-filter: blur(8px);
+            border: 4px dashed #aaa; color: #fff; transform: rotateY(180deg);
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        .secret-btn {
+            position: absolute; top: 12px; right: 12px; width: 14px; height: 14px;
+            border-radius: 50%; background: rgba(0, 0, 0, 0.05); cursor: pointer;
+            z-index: 100; border: none; transition: background 0.3s;
+        }
+        body:not(.day) .cal-card__face--front .secret-btn { background: rgba(255, 255, 255, 0.1); }
+        .cal-card__face--back .secret-btn { background: rgba(255, 255, 255, 0.15); }
+        .secret-btn:hover { background: rgba(0, 0, 0, 0.2) !important; }
+        body:not(.day) .cal-card__face--front .secret-btn:hover, .cal-card__face--back .secret-btn:hover { background: rgba(255, 255, 255, 0.3) !important; }
+
+        .cal-header { text-align: center; font-weight: bold; margin-bottom: 2px; color: #ff7696; font-size: 16px; transition: color 1s; margin-top: 2px; }
+        body:not(.day) .cal-header { color: #b1c5f0; }
+        
+        /* 时间跳动样式 */
+        .cal-time { text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #ff7696; transition: color 1s; font-family: 'Courier New', Courier, monospace; letter-spacing: 1px; }
+        body:not(.day) .cal-time { color: #b1c5f0; }
+        .time-colon { animation: blink 1s infinite; }
+        @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+        .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #f39c12; transition: color 1s;}
+        body:not(.day) .cal-weekdays { color: #f1c40f; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .cal-day { text-align: center; font-size: 13px; padding: 4px 0; border-radius: 10px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #666; margin: 1px; font-weight: bold; }
+        body:not(.day) .cal-day { color: #dbe2ef; }
+        .cal-day:hover { background: #ffb6c1; color: white !important; transform: scale(1.15) rotate(4deg); box-shadow: 0 4px 10px rgba(255,182,193,0.5); }
+        .cal-day.today { background: #ff7696; color: white !important; box-shadow: 0 3px 12px rgba(255, 118, 150, 0.5); }
+        .cal-day.marked { position: relative; background: rgba(255, 235, 59, 0.4); color: #ff5252 !important; border: 2px solid #ffb6c1; padding: 2px 0; transform: rotate(-2deg); }
+        .cal-day.marked::after { content: '⭐'; position: absolute; top: -6px; right: -6px; font-size: 10px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+
+        #tetris-canvas { background: #111; border: 2px solid #555; border-radius: 5px; margin-top: 2px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .game-header { text-align: center; margin-bottom: 2px; width: 100%; display: flex; justify-content: center; margin-top: 8px;}
+        .game-score { font-size: 14px; color: #ffb6c1; font-weight: bold; }
+        .controls-hint { font-size: 11px; color: #aaa; margin-top: 6px; text-align: center; }
+
+        /* ================= 白天游乐园设施 ================= */
+        .carousel-wrapper { position: absolute; bottom: 25%; left: 38%; width: 140px; height: 160px; z-index: 9; perspective: 1000px; }
+        .carousel-base-bottom { position: absolute; bottom: 0; left: 5px; width: 130px; height: 25px; background: repeating-linear-gradient(90deg, #e67e22, #e67e22 15px, #d35400 15px, #d35400 30px); border-radius: 5px; border: 2px solid #a04000; box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+        .carousel-roof { position: absolute; top: 0; left: 0; width: 0; height: 0; border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 50px solid #e74c3c; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); z-index: 10; pointer-events: none; }
+        .carousel-roof::after { content: ''; position: absolute; top: 40px; left: -75px; width: 150px; height: 12px; background: repeating-linear-gradient(90deg, #f1c40f, #f1c40f 20px, #e74c3c 20px, #e74c3c 40px); border-radius: 10px; border: 2px solid #c0392b; }
+        .carousel-spinner { position: absolute; top: 50px; left: 0; width: 100%; height: 85px; transform-style: preserve-3d; animation: spinCarousel 8s linear infinite; animation-play-state: running; }
+        @keyframes spinCarousel { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        .carousel-center-pole { position: absolute; top: 0; left: 65px; width: 10px; height: 100%; background: repeating-linear-gradient(0deg, #bdc3c7, #bdc3c7 10px, #95a5a6 10px, #95a5a6 20px); border: 2px solid #7f8c8d; transform: translateZ(0); }
+        .horse-group { position: absolute; top: 0; left: 65px; width: 10px; height: 85px; transform-style: preserve-3d; }
+        .hg1 { transform: rotateY(0deg) translateZ(45px); } .hg2 { transform: rotateY(120deg) translateZ(45px); } .hg3 { transform: rotateY(240deg) translateZ(45px); }
+        .horse-pole { position: absolute; top: 0; left: 2px; width: 6px; height: 100%; background: #f1c40f; border: 1px solid #d4ac0d; }
+        .horse-body { position: absolute; top: 30px; left: -15px; width: 40px; height: 20px; background: #fff; border-radius: 8px; border: 2px solid #999; animation: horseBob 2s ease-in-out infinite alternate; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .hg1 .horse-body { background: #ffb6c1; animation-delay: 0s; border-color: #ff69b4; } .hg2 .horse-body { background: #87CEEB; animation-delay: -0.6s; border-color: #4682B4; } .hg3 .horse-body { background: #98FB98; animation-delay: -1.3s; border-color: #2E8B57; }
+        .horse-body::before { content: ''; position: absolute; top: -12px; right: -5px; width: 16px; height: 14px; background: inherit; border-radius: 4px; border: 2px solid inherit; border-bottom: none; }
+        .horse-body::after { content: ''; position: absolute; top: 4px; left: -10px; width: 12px; height: 6px; background: #f1c40f; border-radius: 4px; transform: rotate(20deg); }
+        @keyframes horseBob { 0% { transform: translateY(-8px); } 100% { transform: translateY(12px); } }
+        .carousel-lights { position: absolute; top: 46px; left: -5px; width: 150px; height: 10px; display: flex; justify-content: space-evenly; z-index: 11; }
+        .clight { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px 2px #f1c40f; animation: lightTwinkle 1s alternate infinite; }
+        .clight:nth-child(even) { animation-delay: 0.5s; background: #fdfefe; box-shadow: 0 0 6px 2px #3498db; }
+        @keyframes lightTwinkle { 0% { opacity: 0.4; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); } }
+
+        #carousel-switch { position: absolute; bottom: 25%; left: 34%; width: 24px; height: 36px; background: #bdc3c7; border: 3px solid #7f8c8d; border-bottom: none; border-radius: 5px 5px 0 0; z-index: 9; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        #carousel-switch::after { content: ''; position: absolute; width: 14px; height: 20px; background: #e74c3c; border-radius: 3px; top: 12px; transition: top 0.3s, background 0.3s; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2); }
+        #carousel-switch.on::after { top: 4px; background: #2ecc71; box-shadow: inset 0 3px 0 rgba(0,0,0,0.2); }
+
+        .ferris-wheel { position: absolute; bottom: 25%; left: 10%; width: 140px; height: 180px; z-index: 8; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fw-stand { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 70px; height: 90px; border-left: 6px solid #7f8c8d; border-right: 6px solid #7f8c8d; clip-path: polygon(50% 0%, 100% 100%, 0% 100%); background: rgba(189, 195, 199, 0.4); }
+        .fw-wheel { position: absolute; top: 0; left: 10px; width: 120px; height: 120px; border-radius: 50%; border: 4px solid #f39c12; animation: spinFW 15s linear infinite; z-index: 10; }
+        .fw-wheel::before, .fw-wheel::after { content: ''; position: absolute; background: #d35400; top: 50%; left: 0; width: 100%; height: 2px; } .fw-wheel::after { transform: rotate(90deg); }
+        .fw-cabin { width: 20px; height: 26px; background: #e74c3c; position: absolute; border-radius: 5px 5px 3px 3px; border: 2px solid #c0392b; margin-top: -13px; margin-left: -10px; animation: antiSpinFW 15s linear infinite; z-index: 11; }
+        .fw-cabin.c1 { top: 0; left: 50%; background: #e74c3c; } .fw-cabin.c2 { top: 50%; left: 100%; background: #3498db; } .fw-cabin.c3 { top: 100%; left: 50%; background: #2ecc71; } .fw-cabin.c4 { top: 50%; left: 0; background: #9b59b6; }
+        @keyframes spinFW { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } @keyframes antiSpinFW { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+
+        .willow-tree { position: absolute; bottom: 25%; right: 22%; width: 100px; height: 160px; z-index: 7; cursor: pointer; transition: transform 0.1s; }
+        .tree-trunk { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 16px; height: 80px; background: #795548; border-radius: 8px 8px 0 0; }
+        .branch { position: absolute; background: #81c784; border-radius: 40px 40px 10px 10px; transform-origin: top center; animation: swayTree 3s ease-in-out infinite alternate; box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1); }
+        .br1 { width: 50px; height: 90px; top: 10px; left: 5px; transform: rotate(-15deg); } .br2 { width: 65px; height: 110px; top: 0; left: 18px; z-index: 2; animation-delay: 0.5s; background: #66bb6a;} .br3 { width: 45px; height: 85px; top: 15px; left: 45px; transform: rotate(20deg); animation-delay: 1s; }
+        @keyframes swayTree { 0% { transform: rotate(calc(var(--rot, 0deg) - 6deg)); } 100% { transform: rotate(calc(var(--rot, 0deg) + 6deg)); } }
+        .falling-leaf { position: absolute; width: 10px; height: 10px; background: #a5d6a7; border-radius: 50% 0 50% 0; z-index: 8; animation: fallLeaf 2s linear forwards; pointer-events: none; }
+        @keyframes fallLeaf { 0% { transform: translate(0, 0) rotate(0deg); opacity: 1; } 100% { transform: translate(var(--dx), 100px) rotate(360deg); opacity: 0; } }
+
+        .bird { position: absolute; top: 12%; font-size: 26px; cursor: pointer; z-index: 12; animation: flyBird 25s linear infinite; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2)); }
+        .bird.flip { animation: birdFlip 1s ease-out; }
+        @keyframes flyBird { 0% { left: -10%; transform: translateY(0) scaleX(-1); } 49.9% { left: 110%; transform: translateY(-20px) scaleX(-1); } 50% { left: 110%; transform: translateY(-20px) scaleX(1); } 100% { left: -10%; transform: translateY(0) scaleX(1); } }
+        @keyframes birdFlip { 0% { transform: rotate(0deg) scaleX(-1); } 100% { transform: rotate(360deg) scaleX(-1); } }
+
+        /* ================= 小猫与互动特效 ================= */
+        .ice-cream-stand { position: absolute; bottom: 25%; right: 5%; width: 100px; height: 80px; background: #fdfefe; border: 3px solid #7f8c8d; border-bottom: none; z-index: 15; cursor: pointer; }
+        .ice-cream-stand::before { content: 'ICE CREAM'; position: absolute; top: -45px; left: -10px; width: 120px; height: 40px; background: repeating-linear-gradient(90deg, #e74c3c, #e74c3c 20px, #f1c40f 20px, #f1c40f 40px); border-radius: 10px 10px 0 0; border: 3px solid #7f8c8d; color: rgb(255, 255, 255); font-weight: bold; font-size: 14px; line-height: 40px; text-align: center; text-shadow: 1px 1px 2px #333; box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
+        .ice-cream-stand::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: #3498db; border-top: 3px solid #7f8c8d; }
+        .ice-cream { position: absolute; width: 20px; height: 20px; background: #ffb6c1; border-radius: 50%; z-index: 1000; cursor: grab; box-shadow: inset -3px -3px 0 rgba(0,0,0,0.1); }
+        .ice-cream::after { content: ''; position: absolute; top: 18px; left: 3px; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 20px solid #e67e22; }
+        
+        .cat { position: absolute; bottom: 25%; width: 35px; height: 20px; border-radius: 10px; cursor: pointer; z-index: 16; transform: scaleX(var(--dir, 1)); transition: left 1s ease-in-out; }
+        .cat.flip { --dir: -1; }
+        .cat-head { position: absolute; width: 22px; height: 18px; top: -10px; left: -8px; border-radius: 50%; transition: all 0.3s;}
+        .cat-ear { position: absolute; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid; top: -6px; }
+        .cat-ear.left { left: 0; } .cat-ear.right { right: 0; }
+        .cat-tail { position: absolute; width: 6px; height: 20px; right: -4px; top: -10px; border-radius: 5px; transform-origin: bottom center; animation: tailWag 2s infinite alternate; transition: all 0.3s;}
+
+        .cat-bubble { position: absolute; top: -35px; left: 50%; background: rgba(255,255,255,0.9); border: 2px solid #ccc; border-radius: 10px; padding: 4px 8px; font-size: 12px; color: #333; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; font-weight: bold; font-family: 'Courier New', Courier, monospace; transform: translateX(-50%) scaleX(var(--dir, 1)); }
+        .cat-bubble::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: rgba(255,255,255,0.9) transparent transparent transparent; }
+
+        .cat-tuxedo { background: #333; left: 15%; } .cat-tuxedo .cat-head { background: #333; box-shadow: inset 0 -6px 0 #fff; } .cat-tuxedo .cat-ear { border-bottom-color: #333; } .cat-tuxedo .cat-tail { background: #333; }
+        .cat-tabby { background: repeating-linear-gradient(90deg, #a67c00, #a67c00 5px, #6b4c00 5px, #6b4c00 10px); left: 30%; } .cat-tabby .cat-head { background: #a67c00; } .cat-tabby .cat-ear { border-bottom-color: #a67c00; } .cat-tabby .cat-tail { background: #6b4c00; }
+        .cat-persian { background: #fff; box-shadow: 0 0 5px #fff; width: 40px; height: 25px; border-radius: 15px; left: 50%; } .cat-persian .cat-head { background: #fff; width: 26px; height: 22px; } .cat-persian .cat-ear { border-bottom-color: #c19356; } .cat-persian .cat-tail { background: #fff; width: 8px; }
+        .cat-sphynx { background: #65473e; width: 30px; height: 18px; left: 70%; } .cat-sphynx .cat-head { background: #58372e; width: 18px; height: 16px; left: -5px;} .cat-sphynx .cat-ear { border-bottom-color: #5e382e; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 15px solid #985d4d; top: -12px;} .cat-sphynx .cat-tail { background: #825447; width: 4px; height: 25px; }
+        .cat-ragdoll { background: #fff; left: 85%; } .cat-ragdoll .cat-head { background: #fff; box-shadow: inset 0 8px 0 #888; } .cat-ragdoll .cat-ear { border-bottom-color: #5b5353; } .cat-ragdoll .cat-tail { background: #888; }
+        @keyframes tailWag { 0% { transform: rotate(-20deg); } 100% { transform: rotate(20deg); } }
+        .cat.stretch { animation: catStretch 0.5s ease-in-out; } @keyframes catStretch { 0%, 100% { transform: scaleX(var(--dir, 1)) scaleY(1); } 50% { transform: scaleX(calc(var(--dir, 1) * 1.3)) scaleY(0.7); } }
+
+        .cute-item { position: absolute; font-size: 28px; z-index: 1005; cursor: grab; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3)); animation: dropBounceAnim 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .cute-item:active { cursor: grabbing; transform: scale(1.2); }
+        @keyframes dropBounceAnim { 0% { transform: translateY(-100px) rotate(-20deg); opacity: 0; } 100% { transform: translateY(0) rotate(10deg); opacity: 1; } }
+
+        .poop { position: absolute; font-size: 16px; z-index: 1005; cursor: grab; animation: dropIn 0.3s ease-out; }
+        .poop:active { cursor: grabbing; }
+        @keyframes dropIn { 0% { transform: translateY(-10px); opacity: 0;} 100% { transform: translateY(0); opacity: 1;} }
+        
+       /* ================= 全新像素花朵样式 (完美还原图片风格) ================= */
+.flower { position: absolute; transform-origin: bottom center; z-index: 10; cursor: pointer; animation: popFlower 0.3s ease-out forwards; }
+@keyframes popFlower { 0% { transform: scale(0); } 100% { transform: scale(var(--f-scale, 1)); } }
+
+/* ================= 全新像素花朵样式 (完美还原图片风格) ================= */.flower {     position: absolute;     transform-origin: bottom center;     z-index: 10;     cursor: pointer;     /* 组合两个动画：先执行0.4秒的弹出动画，随后无限循环3秒的平滑摇摆动画 */    animation: popFlower 0.4s ease-out forwards, swayFlower 3s ease-in-out 0.4s infinite alternate; }@keyframes popFlower {     0% { transform: scale(0) rotate(0deg); }     100% { transform: scale(var(--f-scale, 1)) rotate(0deg); } }/* 增加随风摇摆动画，保持原有的随机缩放大小，仅改变旋转角度 */@keyframes swayFlower {     0% { transform: scale(var(--f-scale, 1)) rotate(-8deg); }     100% { transform: scale(var(--f-scale, 1)) rotate(8deg); } }
+
+/* 绿色的花茎 (带有图片中标志性的单侧小叶子) */
+.flower-stem { position: absolute; bottom: 0; width: 4px; height: 16px; background: #81C784; left: -2px; }
+.flower-stem::after { content:''; position: absolute; width: 4px; height: 4px; background: #81C784; bottom: 4px; right: -4px; }
+
+/* 花朵基准点：每个像素块放大为 4x4 大小，让像素感更明显 */
+.flower-head { position: absolute; bottom: 16px; left: -2px; width: 4px; height: 4px; z-index: 12; }
+
+/* 1. 郁金香 (粉色，顶部开口的 U 形) */
+.type-tulip .flower-head { 
+    background: #FF69B4; 
+    box-shadow: 
+        -4px 0 0 #FF69B4, 4px 0 0 #FF69B4, 
+        -4px -4px 0 #FF69B4, 0 -4px 0 #FF69B4, 4px -4px 0 #FF69B4, 
+        -4px -8px 0 #FF99CC, 4px -8px 0 #FF99CC; /* 顶部花瓣颜色稍微变浅，增加层次 */
+}
+
+/* 2. 小雏菊 (中间黄蕊，四周白色十字形花瓣) */
+.type-daisy .flower-head { 
+    background: #FFD700; /* 黄色花蕊 */
+    box-shadow: 
+        0 -4px 0 #FFFFFF, 
+        0 4px 0 #FFFFFF, 
+        -4px 0 0 #FFFFFF, 
+        4px 0 0 #FFFFFF; 
+}
+
+/* 3. 蓝风铃 (中间黄蕊，四周蓝色十字形花瓣) */
+.type-blue .flower-head { 
+    background: #FFD700; /* 黄色花蕊 */
+    box-shadow: 
+        0 -4px 0 #64B5F6, 
+        0 4px 0 #64B5F6, 
+        -4px 0 0 #64B5F6, 
+        4px 0 0 #64B5F6; 
+}
+
+/* 4. 小野花 (迷你粉色十字) */
+.type-tiny-pink .flower-head { 
+    background: #FFB6C1; 
+    box-shadow: 
+        0 -4px 0 #FF69B4, 
+        0 4px 0 #FF69B4, 
+        -4px 0 0 #FF69B4, 
+        4px 0 0 #FF69B4; 
+}
+
+.lawn-flower { transition: opacity 2s ease; }
+body:not(.day) .lawn-flower { opacity: 0.3; }
+
+        .lawn-flower { transition: opacity 2s ease; }
+        body:not(.day) .lawn-flower { opacity: 0.3; }
+
+        .bubble { position: absolute; border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.3); border-radius: 50%; pointer-events: none; z-index: 100; animation: floatBubble 2s ease-in forwards; }
+        @keyframes floatBubble { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; } }
+
+        .bubble-water { position: absolute; width: 30px; height: 40px; background: rgba(176, 224, 230, 0.9); border: 3px solid #fff; border-radius: 5px 5px 20px 20px; cursor: pointer; z-index: 55; animation: dropBounce 4s ease-in-out forwards; box-shadow: 0 0 10px rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; font-size: 20px; }
+        .bubble-water::after { content:'💧'; position: absolute; top: 8px; left: 1px; font-size: 18px;}
+        .bubble-water::before { content: ''; position: absolute; top: -15px; left: 8px; width: 8px; height: 12px; border: 3px solid #fff; border-bottom: none; border-radius: 5px 5px 0 0; }
+        @keyframes dropBounce { 0% { top: -50px; transform: rotate(-15deg); } 80% { top: 70vh; transform: rotate(10deg); } 90% { top: 65vh; transform: rotate(0deg); } 100% { top: 70vh; transform: rotate(0deg); } }
+
+        .interactive-bubble { position: absolute; border: 2px solid rgba(255, 255, 255, 0.9); background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2) 60%, rgba(200,230,255,0.5)); border-radius: 50%; cursor: pointer; z-index: 100; box-shadow: inset 0 0 10px rgba(255,255,255,0.5); pointer-events: auto; transition: transform 0.2s; }
+        .interactive-bubble:hover { transform: scale(1.1); }
+        @keyframes blowFloat { 0% { transform: translate(0, 0) scale(0.5); opacity: 1; } 100% { transform: translate(var(--drift), -80vh) scale(1.5); opacity: 0; } }
+
+        /* --- 角色分层 --- */
+        #character-container { position: absolute; bottom: 25%; transform: translateX(-50%); z-index: 20; cursor: grab; }
+        #character-container:active { cursor: grabbing; }
+        
+        .pixel-girl { width: 60px; height: 80px; position: relative; animation: idle 1.5s infinite alternate; transition: transform 0.2s; transform-origin: bottom center; }
+        .girl-visuals { position: absolute; width: 100%; height: 100%; transform: scaleX(var(--dir, 1)); transition: transform 0.2s; transform-origin: center; }
+        .pixel-girl.flip .girl-visuals { --dir: -1; }
+        
+        .girl-on-horse { position: absolute !important; top: -45px !important; left: -10px !important; transform: scale(0.55) !important; pointer-events: auto; }
+
+        .head { width: 40px; height: 40px; background-color: #ffdcb5; position: absolute; top: 0; left: 10px; border: 4px solid #333; }
+        .hair { width: 52px; height: 35px; background-color: #4a2e15; position: absolute; top: -4px; left: 4px; border-radius: 10px 10px 0 0;}
+        .hair-back { width: 56px; height: 60px; background-color: #4a2e15; position: absolute; top: 10px; left: 2px; z-index: -1; border-radius: 10px;}
+        .eye { width: 6px; height: 6px; background-color: #333; position: absolute; top: 18px; transition: all 0.2s;}
+        .eye.left { left: 18px; } .eye.right { left: 36px; }
+        .blush { width: 8px; height: 4px; background-color: #ff8fa3; position: absolute; top: 25px; opacity: 0; transition: all 0.3s; box-shadow: 0 0 5px #ff8fa3;}
+        .blush.left { left: 14px; } .blush.right { left: 38px; }
+        .body { width: 30px; height: 30px; background-color: #ffb6c1; position: absolute; top: 40px; left: 15px; border: 4px solid #333; border-top: none; }
+        .leg { width: 8px; height: 15px; background-color: #ffdcb5; border: 4px solid #333; border-top: none; position: absolute; top: 70px; }
+        .leg.left { left: 20px; } .leg.right { left: 32px; }
+
+        .worn-bow { position: absolute; top: -10px; right: -5px; font-size: 22px; z-index: 10; transform: rotate(15deg); filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));}
+
+        @keyframes idle { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
+        
+        .happy .girl-visuals { animation: happyBounce 0.4s ease-in-out; } 
+        @keyframes happyBounce {
+            0%, 100% { transform: scaleX(var(--dir, 1)) scaleY(1); }
+            40% { transform: scaleX(calc(var(--dir, 1) * 1.1)) scaleY(0.9); }
+            70% { transform: scaleX(calc(var(--dir, 1) * 0.95)) scaleY(1.05) translateY(-8px); }
+        }
+        .shy .blush { opacity: 1; } .shy .eye { height: 2px; top: 21px; }
+
+        .angry .girl-visuals { animation: shakeGirl 0.4s ease-in-out infinite !important; }
+        @keyframes shakeGirl { 0%, 100% { transform: translateX(0) scaleX(var(--dir, 1)); } 25% { transform: translateX(-3px) scaleX(var(--dir, 1)); } 75% { transform: translateX(3px) scaleX(var(--dir, 1)); } }
+        .angry .blush { background-color: #ff4d4d; opacity: 1; box-shadow: 0 0 10px #ff4d4d; }
+        .angry .eye { height: 4px; border-radius: 50% 50% 0 0; border-bottom: 2px solid #333; background: transparent; }
+
+        #speech-bubble { position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.9); border: 3px solid #ffb6c1; padding: 8px 12px; border-radius: 15px; font-weight: bold; font-size: 13px; color: #333; white-space: nowrap; opacity: 0; transition: opacity 0.2s; pointer-events: none; box-shadow: 0 4px 10px rgba(255, 182, 193, 0.3); z-index: 50; }
+        #speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; margin-left:-8px; border-width: 8px 8px 0; border-style: solid; border-color: rgba(255, 255, 255, 0.9) transparent transparent transparent; }
+        .girl-on-horse #speech-bubble { transform: translateX(-50%) scale(1.8); bottom: 100px;} 
+
+        .floating-text { position: absolute; color: #ffb6c1; font-weight: bold; font-size: 18px; pointer-events: none; z-index: 100; text-shadow: 1px 1px 2px white; animation: floatUp 1.5s ease-out forwards; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(1.2); } }
+        .burst-star { position: absolute; font-size: 14px; pointer-events: none; z-index: 100; animation: burst 0.8s ease-out forwards; }
+        @keyframes burst { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); } }
+
+        /* ================= 密码本与输入界面 ================= */
+        .secret-book { position: absolute; bottom: 25%; right: 28%; font-size: 30px; cursor: pointer; z-index: 25; animation: bookDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, floatBook 2s infinite alternate; filter: drop-shadow(0 0 10px #f1c40f); }
+        @keyframes bookDrop { 0% { transform: translateY(-100px) scale(0); } 100% { transform: translateY(0) scale(1); } }
+        @keyframes floatBook { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
+
+        #password-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 100000; }
+        .pin-pad { background: rgba(255, 255, 255, 0.9); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 4px solid #ffb6c1; width: 220px; }
+        .pin-pad h2 { margin: 0 0 15px 0; color: #e74c3c; font-size: 18px; }
+        #pin-display { background: #fff; border: 2px solid #ccc; height: 40px; border-radius: 10px; margin-bottom: 20px; font-size: 24px; font-weight: bold; line-height: 40px; letter-spacing: 10px; color: #333; }
+        .pin-display-error { animation: shakePad 0.4s; border-color: red !important; color: red !important; }
+        @keyframes shakePad { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .pad-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .pad-keys button { background: #fdfefe; border: 2px solid #bdc3c7; border-radius: 10px; height: 40px; font-size: 18px; font-weight: bold; color: #2c3e50; cursor: pointer; transition: 0.2s; }
+        .pad-keys button:hover { background: #ffb6c1; color: white; border-color: #ff69b4; }
+        .pad-keys button:active { transform: scale(0.95); }
+        .btn-clear { background: #fdedec !important; color: #e74c3c !important; }
+        .btn-confirm { background: #e8f8f5 !important; color: #27ae60 !important; }
+
+        /* ================= 隐藏生日图层 ================= */
+        #birthday-layer { position: fixed; inset: 0; background: linear-gradient(135deg, #1a0b2e 0%, #4b1d52 50%, #901f4c 100%); z-index: 200000; display: none; overflow: hidden; opacity: 0; transition: opacity 2s ease; }
+        #exit-birthday-btn { position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: rgba(255,255,255,0.2); border: 2px solid #fff; color: #fff; font-size: 16px; font-family: inherit; font-weight: bold; border-radius: 20px; cursor: pointer; z-index: 200010; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        #exit-birthday-btn:hover { background: #fff; color: #901f4c; transform: scale(1.05); }
+        .birthday-banner { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 100%; text-align: center; font-size: 4vw; font-family: 'Comic Sans MS', cursive, sans-serif; font-weight: bold; background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); background-clip: text; color: transparent; text-shadow: 0 0 20px rgba(255, 215, 0, 0.4); animation: bounceBanner 2s ease-in-out infinite alternate; z-index: 10; }
+        @keyframes bounceBanner { 0% { transform: translateX(-50%) translateY(0) scale(1); } 100% { transform: translateX(-50%) translateY(-10px) scale(1.05); } }
+        .cake-container { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); width: 200px; height: 250px; z-index: 5; }
+        .cake-tier { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 10px; }
+        .tier1 { bottom: 0; width: 180px; height: 60px; background: #ff99cc; box-shadow: inset 0 -10px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.3); border: 2px solid #ff66a3; }
+        .tier1::after { content: ''; position: absolute; top: 10px; left: 0; width: 100%; height: 15px; background: repeating-linear-gradient(90deg, #fff, #fff 20px, transparent 20px, transparent 40px); opacity: 0.5; }
+        .tier2 { bottom: 60px; width: 130px; height: 50px; background: #fff; box-shadow: inset 0 -10px rgba(0,0,0,0.1); border: 2px solid #ddd; }
+        .tier2::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 15px; background: #ffb366; border-radius: 10px 10px 5px 5px; } 
+        .tier3 { bottom: 110px; width: 80px; height: 40px; background: #ff66a3; box-shadow: inset 0 -10px rgba(0,0,0,0.1); border: 2px solid #e6005c; }
+        .candle { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); width: 10px; height: 35px; background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ff3333 5px, #ff3333 10px); border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .flame { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 12px; height: 16px; background: #ffcc00; border-radius: 50% 50% 20% 20%; box-shadow: 0 0 15px #ff9900, 0 0 30px #ff3300; animation: flicker 0.2s infinite alternate; }
+        @keyframes flicker { 0% { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 0.9; } 100% { transform: translateX(-50%) scale(1.1) rotate(2deg); opacity: 1; } }
+        .confetti { position: absolute; top: -10px; z-index: 1; animation: fallConfetti linear forwards; }
+        @keyframes fallConfetti { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        .party-character { position: absolute; z-index: 6; animation: partyJump 0.6s infinite alternate; }
+        @keyframes partyJump { 0% { transform: translateY(0); } 100% { transform: translateY(-20px); } }
+    </style>
+</head>
+<body>
+    <!-- 开场引导 -->
+    <div id="start-overlay">
+        <h1>✨ 点击屏幕，开启专属奇遇 ✨</h1>
+    </div>
+
+    <!-- 背景交替 -->
+    <div class="sky-gradient"></div>
+    <div class="sky-day"></div>
+
+    <!-- 🎧 音效库 -->
+    <audio id="bgm" loop src="https://pixabay.com/zh/sound-effects/musical-soft-harmonic-breath-short-450972/"></audio>
+    <audio id="bgm-birthday" loop src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3"></audio> 
+    <audio id="sfx-flower" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_0c6f6a2c6e.mp3"></audio>
+    <audio id="sfx-moon" src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_2b6d3c9f75.mp3"></audio>
+    <audio id="sfx-girl" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_34731ed093.mp3"></audio>
+    <audio id="sfx-cat" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_51cbfa17f4.mp3"></audio>
+    <audio id="sfx-bird" src="https://cdn.pixabay.com/download/audio/2022/03/24/audio_e2ea4ee48b.mp3"></audio>
+    <audio id="sfx-cloud" src="https://cdn.pixabay.com/download/audio/2021/08/09/audio_249219495e.mp3"></audio>
+    <audio id="sfx-carousel" loop src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_651a2d4b9b.mp3"></audio>
+
+    <!-- 🌟 洛杉矶手账日历面板 (带3D翻转与隐藏俄罗斯方块) -->
+    <div id="la-calendar">
+        <div class="cal-card" id="la-calendar-card">
+            <!-- 正面：日历 -->
+            <div class="cal-card__face cal-card__face--front">
+                <button class="secret-btn" onclick="flipCalendar(event)" title="?"></button>
+                <div class="cal-header" id="cal-header"></div>
+                <div class="cal-time" id="cal-time"></div>
+                <div class="cal-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+                <div class="cal-grid" id="cal-grid"></div>
+            </div>
+
+            <!-- 背面：俄罗斯方块 -->
+            <div class="cal-card__face cal-card__face--back">
+                <button class="secret-btn" onclick="flipCalendar(event)" title="返回"></button>
+                <div class="game-header">
+                    <div class="game-score">分数: <span id="tetris-score">0</span></div>
+                </div>
+                <canvas id="tetris-canvas" width="150" height="210"></canvas>
+                <div class="controls-hint">← → ↓ ↑ 控制</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 天空元素 -->
+    <div id="stars-container"></div>
+    <div class="moon-sun" id="moon"></div>
+    <div class="cloud cloud1"></div><div class="cloud cloud2"></div><div class="cloud cloud3"></div>
+
+    <!-- 🌙 夜晚温馨小房子 -->
+    <div class="house house1 night-element"><div class="roof"></div><div class="wall"><div class="window"></div><div class="door"></div></div></div>
+    <div class="house house2 night-element"><div class="roof"></div><div class="wall"><div class="window"></div><div class="door"></div></div></div>
+    <div class="house house3 night-element"><div class="roof"></div><div class="wall"><div class="window"></div><div class="door"></div></div></div>
+
+    <!-- ☀️ 白天游乐园 -->
+    <div class="carousel-wrapper day-element" id="carousel">
+        <div class="carousel-base-bottom"></div>
+        <div class="carousel-spinner" id="carousel-spinner">
+            <div class="carousel-center-pole"></div>
+            <div class="horse-group hg1"><div class="horse-pole"></div><div class="horse-body"></div></div>
+            <div class="horse-group hg2"><div class="horse-pole"></div><div class="horse-body"></div></div>
+            <div class="horse-group hg3"><div class="horse-pole"></div><div class="horse-body"></div></div>
+        </div>
+        <div class="carousel-roof"></div>
+        <div class="carousel-lights"><div class="clight"></div><div class="clight"></div><div class="clight"></div><div class="clight"></div><div class="clight"></div><div class="clight"></div></div>
+    </div>
+    
+    <div id="carousel-switch" class="day-element on"></div>
+    
+    <div class="ferris-wheel day-element" id="ferris">
+        <div class="fw-stand"></div>
+        <div class="fw-wheel" id="fw-wheel"><div class="fw-cabin c1"></div><div class="fw-cabin c2"></div><div class="fw-cabin c3"></div><div class="fw-cabin c4"></div></div>
+    </div>
+
+    <!-- 大柳树 -->
+    <div class="willow-tree day-element" id="willow">
+        <div class="tree-trunk"></div>
+        <div class="branch br1" style="--rot:-15deg"></div><div class="branch br2" style="--rot:0deg"></div><div class="branch br3" style="--rot:20deg"></div>
+    </div>
+
+    <div class="bird day-element" id="bird1">🕊️</div>
+
+    <!-- 地面与宠物 -->
+    <div class="ground" id="ground"></div>
+    <div id="cats-container">
+        <div class="cat cat-tuxedo" id="cat1"><div class="cat-head"><div class="cat-ear left"></div><div class="cat-ear right"></div></div><div class="cat-tail"></div></div>
+        <div class="cat cat-tabby" id="cat2"><div class="cat-head"><div class="cat-ear left"></div><div class="cat-ear right"></div></div><div class="cat-tail"></div></div>
+        <div class="cat cat-persian" id="cat3"><div class="cat-head"><div class="cat-ear left"></div><div class="cat-ear right"></div></div><div class="cat-tail"></div></div>
+        <div class="cat cat-sphynx" id="cat4"><div class="cat-head"><div class="cat-ear left"></div><div class="cat-ear right"></div></div><div class="cat-tail"></div></div>
+        <div class="cat cat-ragdoll" id="cat5"><div class="cat-head"><div class="cat-ear left"></div><div class="cat-ear right"></div></div><div class="cat-tail"></div></div>
+    </div>
+    <div class="ice-cream-stand" id="stand"></div>
+
+    <!-- 角色分层 -->
+    <div id="character-container" style="left: 50%;">
+        <div class="pixel-girl" id="girl">
+            <div id="speech-bubble"><span class="text">你好呀！</span></div>
+            <div class="girl-visuals">
+                <div class="hair-back"></div><div class="hair"></div>
+                <div class="head"></div><div class="eye left"></div><div class="eye right"></div>
+                <div class="blush left"></div><div class="blush right"></div>
+                <div class="body"></div><div class="leg left"></div><div class="leg right"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 密码本弹窗 -->
+    <div id="password-modal">
+        <div class="pin-pad">
+            <h2>请输入专属密码 🔒</h2>
+            <div id="pin-display"></div>
+            <div class="pad-keys">
+                <button onclick="inputPin(1)">1</button><button onclick="inputPin(2)">2</button><button onclick="inputPin(3)">3</button>
+                <button onclick="inputPin(4)">4</button><button onclick="inputPin(5)">5</button><button onclick="inputPin(6)">6</button>
+                <button onclick="inputPin(7)">7</button><button onclick="inputPin(8)">8</button><button onclick="inputPin(9)">9</button>
+                <button class="btn-clear" onclick="clearPin()">C</button><button onclick="inputPin(0)">0</button><button class="btn-confirm" onclick="checkPin()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏生日图层 -->
+    <div id="birthday-layer">
+        <button id="exit-birthday-btn">返回游乐园 ↩</button>
+        <div class="birthday-banner">Happy Birthday Mengyuan Li✨</div>
+        <div class="cake-container">
+            <div class="cake-tier tier1"></div><div class="cake-tier tier2"></div><div class="cake-tier tier3"></div><div class="candle"><div class="flame"></div></div>
+        </div>
+        <div id="party-characters"></div>
+    </div>
+
+    <script>
+        let isDay = false; let willowClicks = 0; let girlClickCount = 0;
+        let isCarouselSpinning = true;
+
+        // 全局时间标记点记录
+        const markedDates = new Set();
+
+        function playSound(id) {
+            const audio = document.getElementById(id);
+            if(audio) { 
+                audio.currentTime = 0; 
+                audio.volume = (id.includes('bgm') || id.includes('carousel')) ? 0.35 : 0.6; 
+                audio.play().catch(()=>{}); 
+            }
+        }
+
+        document.getElementById('start-overlay').addEventListener('click', function() {
+            this.style.opacity = '0'; setTimeout(() => this.style.display = 'none', 1000); 
+            playSound('bgm');
+            // 初始化种下25朵不同大小和种类的花
+            for(let i=0; i<25; i++) createFlower(Math.random() * window.innerWidth, window.innerHeight - 20 - Math.random() * (window.innerHeight * 0.15));
+            renderCalendar(); 
+        });
+
+        // ================= 🌟 洛杉矶手账日历与时钟生成系统 =================
+        function updateClock() {
+            const timeEl = document.getElementById('cal-time');
+            if(timeEl) {
+                const laTime = new Date().toLocaleTimeString("en-US", {timeZone: "America/Los_Angeles", hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'});
+                const parts = laTime.split(':');
+                timeEl.innerHTML = `${parts[0]}<span class="time-colon">:</span>${parts[1]}<span class="time-colon">:</span>${parts[2]}`;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // 立即执行一次
+
+        function renderCalendar() {
+            const grid = document.getElementById('cal-grid');
+            const header = document.getElementById('cal-header');
+            
+            // 严格采用洛杉矶时区
+            const laTimeStr = new Date().toLocaleString("en-US", {timeZone: "America/Los_Angeles"});
+            const laDate = new Date(laTimeStr);
+            const year = laDate.getFullYear();
+            const month = laDate.getMonth();
+            const today = laDate.getDate();
+            
+            header.innerHTML = `🧸 ${year}年 ${month + 1}月 (LA) 🧸`;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            grid.innerHTML = '';
+            for(let i=0; i<firstDay; i++) { grid.innerHTML += `<div></div>`; } // 空白占位
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'cal-day' + (i === today ? ' today' : '');
+                dayDiv.innerText = i;
+                
+                const key = `${year}-${month}-${i}`;
+                if (markedDates.has(key)) dayDiv.classList.add('marked');
+                
+                // 真日历！点击可以画星星做心事标记
+                dayDiv.addEventListener('click', (e) => {
+                    e.stopPropagation(); playSound('sfx-flower');
+                    if(markedDates.has(key)) { 
+                        markedDates.delete(key); dayDiv.classList.remove('marked'); 
+                    } else { 
+                        markedDates.add(key); dayDiv.classList.add('marked'); showBubble("哇！在这天标注了一件重要的心事呢！⭐", 3000); 
+                    }
+                });
+                grid.appendChild(dayDiv);
+            }
+        }
+        setInterval(renderCalendar, 60000); // 确保不会跨天不更新
+
+        // ================= 全新花朵生成系统 =================
+        function createFlower(x, y) {
+            const flower = document.createElement('div');
+            // 支持四种不同的花朵类型
+            const types =['type-tulip', 'type-daisy', 'type-blue', 'type-tiny-pink'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            // 随机大小从 0.5 到 1.7 倍
+            const scale = 0.5 + Math.random() * 1.2; 
+            
+            flower.className = `flower lawn-flower ${type}`;
+            flower.style.left = x + 'px';
+            flower.style.top = y + 'px';
+            flower.style.setProperty('--f-scale', scale);
+
+            const stem = document.createElement('div');
+            stem.className = 'flower-stem';
+            const head = document.createElement('div');
+            head.className = 'flower-head';
+            
+            flower.appendChild(stem);
+            flower.appendChild(head);
+            document.body.appendChild(flower);
+
+            // 控制最大花朵数量，防止页面卡顿
+            if(document.querySelectorAll('.lawn-flower').length > 150) {
+                document.querySelector('.lawn-flower').remove();
+            }
+        }
+
+        // 点击草坪生成花朵
+        document.getElementById('ground').addEventListener('click', (e) => { 
+            playSound('sfx-flower'); 
+            createFlower(e.clientX - 2, e.clientY - 10); 
+        });
+
+        // ================= 木马开关系统 =================
+        const carouselSwitch = document.getElementById('carousel-switch');
+        const carouselSpinner = document.getElementById('carousel-spinner');
+        carouselSwitch.addEventListener('click', (e) => {
+            e.stopPropagation(); playSound('sfx-moon');
+            isCarouselSpinning = !isCarouselSpinning;
+            if(isCarouselSpinning) {
+                carouselSwitch.classList.add('on');
+                carouselSpinner.style.animationPlayState = 'running';
+                if(isDay) playSound('sfx-carousel');
+                showBubble("旋转木马启动啦！🎠", 3000);
+            } else {
+                carouselSwitch.classList.remove('on');
+                carouselSpinner.style.animationPlayState = 'paused';
+                document.getElementById('sfx-carousel').pause();
+                showBubble("木马停下来了，要来坐坐看吗？", 3000);
+            }
+        });
+
+        const ferris = document.getElementById('ferris');
+        ferris.addEventListener('click', (e) => {
+            e.stopPropagation(); playSound('sfx-flower'); 
+            ferris.style.transform = 'scale(1.15)'; setTimeout(() => ferris.style.transform = 'scale(1)', 300);
+            for(let i=0; i<5; i++) {
+                const burst = document.createElement('div'); burst.className = 'burst-star'; burst.innerText = i === 0 ? "🎡" : "✨"; burst.style.fontSize = i === 0 ? '24px' : '16px'; burst.style.left = e.clientX + 'px'; burst.style.top = e.clientY + 'px'; const angle = Math.random() * Math.PI * 2; const distance = Math.random() * 50 + 40; burst.style.setProperty('--dx', Math.cos(angle) * distance + 'px'); burst.style.setProperty('--dy', Math.sin(angle) * distance + 'px'); document.body.appendChild(burst); setTimeout(() => burst.remove(), 800);
+            }
+        });
+
+        document.querySelectorAll('.cloud').forEach(cloud => {
+            cloud.addEventListener('click', (e) => {
+                playSound('sfx-cloud');
+                for(let i=0; i<8; i++) {
+                    const burst = document.createElement('div'); burst.className = 'burst-star'; burst.innerText = "✨"; burst.style.left = e.clientX + 'px'; burst.style.top = e.clientY + 'px'; const angle = Math.random() * Math.PI * 2; const distance = Math.random() * 50 + 30; burst.style.setProperty('--dx', Math.cos(angle) * distance + 'px'); burst.style.setProperty('--dy', Math.sin(angle) * distance + 'px'); document.body.appendChild(burst); setTimeout(() => burst.remove(), 800);
+                }
+            });
+        });
+
+        const starsContainer = document.getElementById('stars-container');
+        for (let i = 0; i < 60; i++) {
+            let star = document.createElement('div'); star.className = 'star'; star.style.left = Math.random() * 100 + 'vw'; star.style.top = Math.random() * 70 + 'vh'; star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px'; star.style.animationDuration = (Math.random() * 3 + 2) + 's'; starsContainer.appendChild(star);
+        }
+
+        document.body.addEventListener('click', (e) => {
+            if(e.target.closest('#character-container') || e.target.classList.contains('cloud') || e.target.id === 'moon' || e.target.closest('.cat') || e.target.closest('.ice-cream-stand') || e.target.closest('.day-element') || e.target.closest('#password-modal') || document.getElementById('birthday-layer').style.display === 'block' || e.target.closest('.ground') || e.target.closest('.bubble-water') || e.target.closest('.interactive-bubble') || e.target.closest('.poop') || e.target.closest('#la-calendar') || e.target.closest('.cute-item')) return;
+            const text = document.createElement('div'); text.className = 'floating-text'; text.innerText = "💖"; text.style.left = (e.clientX - 10) + 'px'; text.style.top = (e.clientY - 20) + 'px'; document.body.appendChild(text); setTimeout(() => text.remove(), 1500);
+        });
+
+        const moon = document.getElementById('moon');
+        moon.addEventListener('click', () => {
+            playSound('sfx-moon'); isDay = !isDay;
+            if(isDay) { 
+                document.body.classList.add('day'); moon.classList.add('sun'); showBubble("游乐园开门啦！阳光好好☀️", 3000); 
+                if(isCarouselSpinning) playSound('sfx-carousel');
+            } else { 
+                document.body.classList.remove('day'); moon.classList.remove('sun'); showBubble("夜晚的轻音乐真治愈呀...🌙", 4000); 
+                document.getElementById('sfx-carousel').pause();
+            }
+        });
+
+        const container = document.getElementById('character-container');
+        const girl = document.getElementById('girl');
+        const bubble = document.getElementById('speech-bubble');
+        let bubbleTimeout; 
+        
+        const dayDialogues =["阳光好暖，就像你的拥抱一样 ☀️", "如果能牵着你的手一起坐旋转木马就好了🎠", "空气里甜甜的味道，让我想起你了呀~", "今天天气这么好，不带我出去玩吗？🥺", "你一直盯着我看，我会害羞的啦...😳", "微风吹过的时候，偷偷想了你一下🌬️", "摩天轮转到最高点的时候，你在想谁呢？🎡", "快看快看！那朵云的形状好像爱心哦☁️💖", "偷偷告诉你，其实我等你好久了呢...", "游乐园再好玩，也不如看着你有意思🥰", "你要是冰淇淋的话，一定是草莓味的🍓"];
+        const nightDialogues =["今晚的月色真美呀...你也在看吗？🌙", "听这轻音乐，感觉整个人都放松了呢...", "天上的星星，是不是也在替我想你？✨", "能不能借我你的外套？稍微有点冷呢...❄️", "天黑了，如果你害怕的话，可以牵紧我的手哦🤝", "好想和你一起数星星，就算数不清也没关系🌟", "嘘...听到了吗？是风在替我说晚安呢🌬️", "今天也辛苦啦，我会在这里一直陪着你的~", "好神奇，只要看着你，一天的疲惫就全都不见啦💖", "趁着夜色，偷偷对你说句...我很想你哦。"];
+
+        function showBubble(text, time = 4000) {
+            bubble.querySelector('.text').innerText = text; bubble.style.opacity = 1;
+            clearTimeout(bubbleTimeout); bubbleTimeout = setTimeout(() => { bubble.style.opacity = 0; }, time);
+        }
+
+        let isGirlMouseDown = false; let isGirlDragging = false; let isGirlOnCarousel = false; let startX, startY; let girlOffsetX, girlOffsetY;
+
+        girl.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            if (isGirlOnCarousel && isCarouselSpinning) { playSound('sfx-flower'); showBubble("木马还在转呢，太危险啦！先按旁边的开关停下吧~", 3000); return; }
+            isGirlMouseDown = true; startX = e.clientX; startY = e.clientY; let rect = container.getBoundingClientRect(); girlOffsetX = e.clientX - rect.left; girlOffsetY = e.clientY - rect.top;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if(!isGirlMouseDown) return;
+            if(!isGirlDragging) {
+                if(Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+                    isGirlDragging = true; container.style.transition = 'none';
+                    if (isGirlOnCarousel) { isGirlOnCarousel = false; girl.classList.remove('girl-on-horse'); container.appendChild(girl); container.style.bottom = 'auto'; container.style.transform = 'none'; }
+                }
+            }
+            if(isGirlDragging) { container.style.left = (e.clientX - girlOffsetX) + 'px'; container.style.top = (e.clientY - girlOffsetY) + 'px'; }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if(isGirlMouseDown && !isGirlDragging) { handleGirlClick(); } 
+            else if (isGirlDragging) {
+                container.style.transition = 'left 0.5s ease-out, top 0.5s ease-out'; const carouselRect = document.getElementById('carousel').getBoundingClientRect();
+                if(e.clientX > carouselRect.left && e.clientX < carouselRect.right && e.clientY > carouselRect.top && e.clientY < carouselRect.bottom && isDay) {
+                    isGirlOnCarousel = true; document.querySelector('.hg1 .horse-body').appendChild(girl); girl.classList.add('girl-on-horse'); container.style.top = '-1000px'; playSound('sfx-girl'); showBubble("哇！坐上木马啦！快按开关启动吧~🎠", 3000);
+                } else { container.style.top = 'auto'; container.style.bottom = '25%'; container.style.transform = 'translateX(-50%)'; container.style.left = Math.max(5, Math.min(95, (e.clientX / window.innerWidth * 100))) + '%'; }
+            }
+            isGirlMouseDown = false; isGirlDragging = false;
+        });
+
+        function handleGirlClick() {
+            playSound('sfx-girl');
+            girl.classList.remove('happy', 'shy', 'angry'); void girl.offsetWidth; girl.classList.add('happy', 'shy');
+            setTimeout(() => girl.classList.remove('happy', 'shy'), 500);
+            const dialogues = isDay ? dayDialogues : nightDialogues; showBubble(dialogues[Math.floor(Math.random() * dialogues.length)]);
+            
+            if(!isGirlOnCarousel) {
+                girlClickCount++;
+                if(girlClickCount >= 3) {
+                    let currentLeft = parseFloat(container.style.left) || 50; let moveDir = Math.random() > 0.5 ? 1 : -1;
+                    let newLeft = currentLeft + (moveDir * 8); if (newLeft < 10) newLeft = 10; if (newLeft > 90) newLeft = 90;
+                    container.style.left = newLeft + '%'; if (moveDir === -1) girl.classList.remove('flip'); else girl.classList.add('flip'); 
+                    girlClickCount = 0; 
+                }
+            }
+        }
+
+        const cats = document.querySelectorAll('.cat'); const catSpeeds =[0.8, 0.4, 1.5, 0.6, 1.0]; 
+        const catCuteTalks =["喵~ 要摸摸吗？🐾", "喵喵！给我小鱼干！🐟", "蹭蹭~💖", "呼噜呼噜...", "喵呜~ 今天真开心呀☀️", "本喵饿了！哼！"];
+
+        cats.forEach((cat, index) => {
+            cat.style.transition = `left ${catSpeeds[index]}s cubic-bezier(0.25, 1, 0.5, 1)`; cat.style.left = (15 + index * 15) + '%'; 
+            cat.addEventListener('click', () => {
+                playSound('sfx-cat'); cat.classList.add('stretch'); setTimeout(() => cat.classList.remove('stretch'), 500);
+                
+                let cBubble = cat.querySelector('.cat-bubble');
+                if(!cBubble) { cBubble = document.createElement('div'); cBubble.className = 'cat-bubble'; cat.appendChild(cBubble); }
+                cBubble.innerText = catCuteTalks[Math.floor(Math.random() * catCuteTalks.length)];
+                cBubble.style.opacity = 1; setTimeout(() => { if(cBubble) cBubble.style.opacity = 0; }, 3000);
+
+                let currentLeft = parseFloat(cat.style.left) || 20; let newLeft;
+                if (index === 3 && !isGirlOnCarousel) {
+                    newLeft = parseFloat(container.style.left) || 50; if (newLeft > currentLeft) newLeft -= 6; else newLeft += 6; showBubble("无毛猫跑过来蹭了蹭你呢~💕", 3000);
+                } else {
+                    let moveDir = Math.random() > 0.5 ? 1 : -1; newLeft = currentLeft + (moveDir * (15 + Math.random()*10)); 
+                    if (newLeft < 5) { newLeft = 5; moveDir = 1; } if (newLeft > 95) { newLeft = 95; moveDir = -1; }
+                }
+                cat.style.left = newLeft + '%'; if (newLeft < currentLeft) cat.classList.remove('flip'); else cat.classList.add('flip'); 
+            });
+        });
+
+        setInterval(() => { dropCuteItem(); }, 45000);
+        function dropCuteItem() {
+            playSound('sfx-flower'); 
+            const item = document.createElement('div'); item.className = 'cute-item';
+            const itemTypes =['🎀', '🧋', '💌']; 
+            const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            item.innerText = type; item.style.left = (Math.random() * 80 + 10) + '%'; item.style.top = '72%';
+            document.body.appendChild(item);
+
+            item.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                function move(me) { item.style.left = (me.clientX - 15) + 'px'; item.style.top = (me.clientY - 15) + 'px'; }
+                function up(ue) {
+                    document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up);
+                    const iRect = item.getBoundingClientRect(); const gRect = (isGirlOnCarousel ? girl : container).getBoundingClientRect();
+                    
+                    if (iRect.left < gRect.right && iRect.right > gRect.left && iRect.top < gRect.bottom && iRect.bottom > gRect.top) {
+                        playSound('sfx-girl');
+                        if(type === '🎀') {
+                            if(!document.querySelector('.worn-bow')) {
+                                const bow = document.createElement('div'); bow.className = 'worn-bow'; bow.innerText = '🎀';
+                                document.querySelector('.head').appendChild(bow);
+                            }
+                            girl.classList.remove('happy', 'shy'); void girl.offsetWidth; girl.classList.add('happy');
+                            showBubble("哇！这个蝴蝶结是给我的吗？好看吗好看吗？🎀", 4000);
+                        } else if(type === '🧋') {
+                            girl.classList.remove('happy', 'shy'); void girl.offsetWidth; girl.classList.add('happy');
+                            showBubble("咕噜咕噜...好甜呀！谢谢你的饮料~ 🧋", 4000);
+                        } else if(type === '💌') {
+                            girl.classList.remove('happy', 'shy'); void girl.offsetWidth; girl.classList.add('shy', 'happy');
+                            showBubble("诶...这是给我的情书吗？好害羞呀... 😳💌", 4000);
+                        }
+                        item.remove();
+                    } else { item.style.top = '72%'; }
+                }
+                document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+            });
+            setTimeout(() => { if(item.parentNode) item.remove(); }, 20000); 
+        }
+
+        setInterval(() => { if(document.querySelectorAll('.bubble-water').length < 1 && isDay) dropBubbleWater(); }, 15000); 
+        function dropBubbleWater() { const bw = document.createElement('div'); bw.className = 'bubble-water'; bw.style.left = (Math.random() * 80 + 10) + '%'; document.body.appendChild(bw); bw.addEventListener('click', (e) => { e.stopPropagation(); playSound('sfx-flower'); bw.remove(); girlBlowBubbles(); }); setTimeout(() => { if(bw.parentNode) bw.remove(); }, 5000); }
+
+        function girlBlowBubbles() {
+            playSound('sfx-girl'); girl.classList.remove('angry', 'shy'); void girl.offsetWidth; girl.classList.add('happy'); showBubble("好耶！吹泡泡咯！快点戳破它们！🫧", 3000); setTimeout(() => girl.classList.remove('happy'), 1000);
+            let rect = (isGirlOnCarousel ? girl : container).getBoundingClientRect();
+            for(let i = 0; i < 12; i++) {
+                setTimeout(() => {
+                    const b = document.createElement('div'); b.className = 'interactive-bubble'; let size = Math.random() * 40 + 25; b.style.width = size + 'px'; b.style.height = size + 'px';
+                    let isFlip = girl.classList.contains('flip'); b.style.left = (rect.left + (isFlip ? rect.width : -30)) + 'px'; b.style.top = (rect.top + 20) + 'px';
+                    b.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px'); b.style.animation = `blowFloat ${3 + Math.random()*3}s ease-in forwards`; document.body.appendChild(b);
+                    b.addEventListener('click', (e) => { e.stopPropagation(); playSound('sfx-flower'); b.remove(); const emojis =['🌸', '💖', '🐶', '🦋', '✨', '🎈', '🍭', '🍓', '🌟', '🥰']; const emoji = document.createElement('div'); emoji.className = 'burst-star'; emoji.style.fontSize = '28px'; emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)]; emoji.style.left = (e.clientX - 14) + 'px'; emoji.style.top = (e.clientY - 14) + 'px'; emoji.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px'); emoji.style.setProperty('--dy', (Math.random() * 80 - 40) + 'px'); document.body.appendChild(emoji); setTimeout(() => emoji.remove(), 800); });
+                    setTimeout(() => { if(b.parentNode) b.remove(); }, 6000);
+                }, i * 200);
+            }
+        }
+
+        const stand = document.getElementById('stand'); let currentIceCream = null;
+        stand.addEventListener('mousedown', (e) => {
+            const iceCream = document.createElement('div'); iceCream.className = 'ice-cream'; iceCream.style.left = (e.clientX - 10) + 'px'; iceCream.style.top = (e.clientY - 10) + 'px'; document.body.appendChild(iceCream); currentIceCream = iceCream;
+            function onMouseMove(mEvent) { if(currentIceCream) { currentIceCream.style.left = (mEvent.clientX - 10) + 'px'; currentIceCream.style.top = (mEvent.clientY - 10) + 'px'; } }
+            function onMouseUp(uEvent) {
+                document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp);
+                if(currentIceCream) {
+                    const icRect = currentIceCream.getBoundingClientRect(); const girlRect = girl.getBoundingClientRect(); let fedCat = false;
+                    cats.forEach(cat => {
+                        const catRect = cat.getBoundingClientRect();
+                        if (icRect.left < catRect.right && icRect.right > catRect.left && icRect.top < catRect.bottom && icRect.bottom > catRect.top) {
+                            fedCat = true; playSound('sfx-cat'); cat.classList.add('stretch'); setTimeout(() => cat.classList.remove('stretch'), 500);
+                            
+                            setTimeout(() => { 
+                                const poop = document.createElement('div'); poop.className = 'poop'; poop.innerText = '💩'; poop.style.left = (catRect.left + 15) + 'px'; poop.style.top = (catRect.bottom - 10) + 'px'; document.body.appendChild(poop); 
+                                
+                                poop.addEventListener('mousedown', (pe) => {
+                                    pe.stopPropagation(); 
+                                    function pMove(pEvent) { poop.style.left = (pEvent.clientX - 10) + 'px'; poop.style.top = (pEvent.clientY - 10) + 'px'; }
+                                    function pUp(pEvent) {
+                                        document.removeEventListener('mousemove', pMove); document.removeEventListener('mouseup', pUp);
+                                        const pRect = poop.getBoundingClientRect(); const gRect = (isGirlOnCarousel ? girl : container).getBoundingClientRect();
+                                        if (pRect.left < gRect.right && pRect.right > gRect.left && pRect.top < gRect.bottom && pRect.bottom > gRect.top) {
+                                            playSound('sfx-girl'); girl.classList.remove('happy', 'shy'); girl.classList.add('angry');
+                                            const angryTalks =["呀！好臭！快拿开啦！😠", "你太坏了！居然拿粑粑逗我！😭", "讨厌讨厌讨厌！我要生气了！😤", "呜哇！你怎么能这样对我！💢"];
+                                            showBubble(angryTalks[Math.floor(Math.random() * angryTalks.length)], 4000);
+                                            setTimeout(() => girl.classList.remove('angry'), 1000); poop.remove();
+                                        }
+                                    }
+                                    document.addEventListener('mousemove', pMove); document.addEventListener('mouseup', pUp);
+                                });
+                                setTimeout(() => { if(poop.parentNode) poop.remove(); }, 8000); 
+                            }, 400); 
+                        }
+                    });
+                    if (!fedCat && icRect.left < girlRect.right && icRect.right > girlRect.left && icRect.top < girlRect.bottom && icRect.bottom > girlRect.top) {
+                        playSound('sfx-girl'); girl.classList.remove('angry', 'shy'); void girl.offsetWidth; girl.classList.add('happy', 'shy'); showBubble("哇！是你特意为我买的吗？好甜！🍦", 4000); setTimeout(() => girl.classList.remove('happy', 'shy'), 1000);
+                    }
+                    currentIceCream.remove(); currentIceCream = null;
+                }
+            }
+            document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+        });
+
+        const willow = document.getElementById('willow');
+        willow.addEventListener('click', (e) => {
+            e.stopPropagation(); if(!isDay) return;
+            playSound('sfx-bird'); willow.style.transform = 'scale(0.95)'; setTimeout(() => willow.style.transform = 'scale(1)', 100);
+            const rect = willow.getBoundingClientRect();
+            for(let i=0; i<3; i++) {
+                const leaf = document.createElement('div'); leaf.className = 'falling-leaf'; leaf.style.left = (rect.left + 20 + Math.random()*60) + 'px'; leaf.style.top = (rect.top + 20 + Math.random()*40) + 'px'; leaf.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px'); document.body.appendChild(leaf); setTimeout(() => leaf.remove(), 2000);
+            }
+            willowClicks++; if (willowClicks === 3) dropSecretBook();
+        });
+
+        function dropSecretBook() {
+            if(document.getElementById('secret-book')) return;
+            const book = document.createElement('div'); book.id = 'secret-book'; book.className = 'secret-book'; book.innerHTML = '📔'; document.body.appendChild(book);
+            book.addEventListener('click', (e) => { e.stopPropagation(); document.getElementById('password-modal').style.display = 'flex'; clearPin(); });
+        }
+
+        let currentPin = ""; const pinDisplay = document.getElementById('pin-display');
+        function inputPin(num) { if(currentPin.length < 4) { currentPin += num; pinDisplay.innerText = "* ".repeat(currentPin.length).trim(); playSound('sfx-flower'); } }
+        function clearPin() { currentPin = ""; pinDisplay.innerText = ""; pinDisplay.classList.remove('pin-display-error'); }
+        
+        function checkPin() {
+            if(currentPin === "0411") { document.getElementById('password-modal').style.display = 'none'; triggerBirthdayScene(); } else { pinDisplay.classList.add('pin-display-error'); playSound('sfx-moon'); setTimeout(clearPin, 500); }
+        }
+
+        document.getElementById('password-modal').addEventListener('click', (e) => {
+            if(e.target.id === 'password-modal') { document.getElementById('password-modal').style.display = 'none'; const book = document.getElementById('secret-book'); if(book) book.remove(); willowClicks = 0; }
+        });
+
+        let confettiInterval;
+        function triggerBirthdayScene() {
+            document.getElementById('bgm').pause(); playSound('bgm-birthday');
+            const bLayer = document.getElementById('birthday-layer'); bLayer.style.display = 'block'; setTimeout(() => bLayer.style.opacity = '1', 50);
+            const partyChars = document.getElementById('party-characters'); partyChars.innerHTML = ''; 
+            const partyGirl = girl.cloneNode(true); partyGirl.className = 'pixel-girl party-character'; partyGirl.style.left = '20%'; partyGirl.style.bottom = '20%'; partyGirl.style.transform = 'scale(1.5) scaleX(1)'; partyGirl.style.animationDelay = '0s'; partyChars.appendChild(partyGirl);
+            const catClasses =['cat-tuxedo', 'cat-tabby', 'cat-persian', 'cat-sphynx', 'cat-ragdoll'];
+            const positions =[{l: '10%', b: '15%'}, {l: '35%', b: '15%'}, {l: '60%', b: '15%'}, {l: '80%', b: '18%'}, {l: '85%', b: '10%'}];
+            document.querySelectorAll('#cats-container .cat').forEach((cDom, index) => { const partyCat = cDom.cloneNode(true); partyCat.className = 'cat ' + catClasses[index] + ' party-character'; partyCat.style.left = positions[index].l; partyCat.style.bottom = positions[index].b; partyCat.style.transform = 'scale(1.5) scaleX(1)'; partyCat.style.animationDelay = (index * 0.2) + 's'; partyChars.appendChild(partyCat); });
+            confettiInterval = setInterval(() => {
+                if(bLayer.style.display === 'block') { const confetti = document.createElement('div'); confetti.className = 'confetti'; const colors =['#f4d03f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6']; confetti.style.left = Math.random() * 100 + 'vw'; confetti.style.width = (Math.random() * 8 + 5) + 'px'; confetti.style.height = (Math.random() * 15 + 10) + 'px'; confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; confetti.style.animationDuration = (Math.random() * 3 + 2) + 's'; bLayer.appendChild(confetti); setTimeout(() => confetti.remove(), 5000); }
+            }, 100);
+        }
+
+        document.getElementById('exit-birthday-btn').addEventListener('click', () => {
+            const bLayer = document.getElementById('birthday-layer'); bLayer.style.opacity = '0';
+            setTimeout(() => { bLayer.style.display = 'none'; clearInterval(confettiInterval); document.querySelectorAll('.confetti').forEach(c => c.remove()); }, 1000);
+            const book = document.getElementById('secret-book'); if(book) book.remove(); willowClicks = 0; 
+            document.getElementById('bgm-birthday').pause(); playSound('bgm'); playSound('sfx-flower');
+        });
+
+        // ================= 🕹️ 俄罗斯方块逻辑 =================
+        let isCalFlipped = false;
+        let tetrisInterval = null;
+        let tBoard =[];
+        let tScore = 0;
+        let tCurrentPiece = null;
+        const T_ROWS = 14; 
+        const T_COLS = 10;
+        const T_BLOCK_SIZE = 15;
+        const tCanvas = document.getElementById('tetris-canvas');
+        const tCtx = tCanvas.getContext('2d');
+        const T_COLORS =['#111', '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
+        const T_PIECES = [
+            [],
+            [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], // I
+            [[2,0,0],[2,2,2],[0,0,0]], // J
+            [[0,0,3],[3,3,3],[0,0,0]], // L
+            [[4,4],[4,4]], // O
+            [[0,5,5],[5,5,0],[0,0,0]], // S
+            [[0,6,0],[6,6,6],[0,0,0]], // T
+            [[7,7,0],[0,7,7],[0,0,0]]  // Z
+        ];
+
+        window.flipCalendar = function(e) {
+            if (e) e.stopPropagation();
+            const card = document.getElementById('la-calendar-card');
+            isCalFlipped = !isCalFlipped;
+            card.classList.toggle('is-flipped');
+            if (isCalFlipped) {
+                if (!tCurrentPiece) { initTetrisBoard(); tCurrentPiece = new TPiece(); }
+                if (!tetrisInterval) { tetrisInterval = setInterval(updateTetris, 500); }
+            } else {
+                clearInterval(tetrisInterval); tetrisInterval = null;
+            }
+        };
+
+        function initTetrisBoard() {
+            for (let r = 0; r < T_ROWS; r++) {
+                tBoard[r] =[]; for (let c = 0; c < T_COLS; c++) tBoard[r][c] = 0;
+            }
+        }
+
+        function drawTetrisBlock(x, y, colorId) {
+            tCtx.fillStyle = T_COLORS[colorId];
+            tCtx.fillRect(x * T_BLOCK_SIZE, y * T_BLOCK_SIZE, T_BLOCK_SIZE, T_BLOCK_SIZE);
+            tCtx.strokeStyle = '#222';
+            tCtx.strokeRect(x * T_BLOCK_SIZE, y * T_BLOCK_SIZE, T_BLOCK_SIZE, T_BLOCK_SIZE);
+        }
+
+        function drawTetrisBoard() {
+            for (let r = 0; r < T_ROWS; r++) {
+                for (let c = 0; c < T_COLS; c++) drawTetrisBlock(c, r, tBoard[r][c]);
+            }
+        }
+
+        class TPiece {
+            constructor() {
+                const typeId = Math.floor(Math.random() * 7) + 1;
+                this.shape = T_PIECES[typeId]; this.color = typeId; this.x = 3; this.y = 0;
+            }
+            draw() {
+                for (let r = 0; r < this.shape.length; r++) {
+                    for (let c = 0; c < this.shape[r].length; c++) {
+                        if (this.shape[r][c] !== 0) drawTetrisBlock(this.x + c, this.y + r, this.color);
+                    }
+                }
+            }
+            moveDown() {
+                if (!this.collision(0, 1, this.shape)) { this.y++; } else { this.lock(); }
+            }
+            moveLeft() { if (!this.collision(-1, 0, this.shape)) this.x--; }
+            moveRight() { if (!this.collision(1, 0, this.shape)) this.x++; }
+            rotate() {
+                let nextPattern =[];
+                for (let i = 0; i < this.shape.length; i++) {
+                    nextPattern[i] =[];
+                    for (let j = 0; j < this.shape.length; j++) nextPattern[i][j] = this.shape[this.shape.length - 1 - j][i];
+                }
+                if (!this.collision(0, 0, nextPattern)) this.shape = nextPattern;
+            }
+            collision(x, y, piece) {
+                for (let r = 0; r < piece.length; r++) {
+                    for (let c = 0; c < piece[r].length; c++) {
+                        if (!piece[r][c]) continue;
+                        let newX = this.x + c + x; let newY = this.y + r + y;
+                        if (newX < 0 || newX >= T_COLS || newY >= T_ROWS) return true;
+                        if (newY < 0) continue;
+                        if (tBoard[newY][newX] !== 0) return true;
+                    }
+                }
+                return false;
+            }
+            lock() {
+                for (let r = 0; r < this.shape.length; r++) {
+                    for (let c = 0; c < this.shape[r].length; c++) {
+                        if (!this.shape[r][c]) continue;
+                        if (this.y + r < 0) {
+                            alert("哎呀，游戏结束！得分：" + tScore);
+                            tScore = 0; document.getElementById('tetris-score').innerText = tScore;
+                            initTetrisBoard(); break;
+                        }
+                        tBoard[this.y + r][this.x + c] = this.color;
+                    }
+                }
+                let linesCleared = 0;
+                for (let r = 0; r < T_ROWS; r++) {
+                    let isFull = true;
+                    for (let c = 0; c < T_COLS; c++) { if (tBoard[r][c] === 0) { isFull = false; break; } }
+                    if (isFull) { tBoard.splice(r, 1); tBoard.unshift(new Array(T_COLS).fill(0)); linesCleared++; }
+                }
+                if (linesCleared > 0) { tScore += linesCleared * 100; document.getElementById('tetris-score').innerText = tScore; }
+                tCurrentPiece = new TPiece();
+            }
+        }
+
+        function drawTetris() {
+            tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height);
+            drawTetrisBoard(); if (tCurrentPiece) tCurrentPiece.draw();
+        }
+
+        function updateTetris() {
+            if (tCurrentPiece) tCurrentPiece.moveDown(); drawTetris();
+        }
+
+        initTetrisBoard(); drawTetrisBoard();
+
+        document.addEventListener('keydown', (e) => {
+            if (!isCalFlipped || !tCurrentPiece) return;
+            if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(e.key)) e.preventDefault();
+            if (e.key === 'ArrowLeft') tCurrentPiece.moveLeft();
+            else if (e.key === 'ArrowRight') tCurrentPiece.moveRight();
+            else if (e.key === 'ArrowDown') tCurrentPiece.moveDown();
+            else if (e.key === 'ArrowUp') tCurrentPiece.rotate();
+            drawTetris();
+        });
+
+    </script>
+</body>
+</html>
+```
